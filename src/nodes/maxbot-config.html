@@ -1,0 +1,38 @@
+<script type="text/javascript">
+  RED.nodes.registerType("maxbot-config", {
+    category: "config",
+    defaults: {
+      name: { value: "" }
+    },
+    credentials: {
+      token: { type: "text" }
+    },
+    label: function() {
+      return this.name || "MAX Bot";
+    },
+    oneditprepare: function() {
+      var tokenInput = $("#node-config-input-token");
+      if (this.credentials && this.credentials.token) {
+        tokenInput.val(this.credentials.token);
+      } else {
+        tokenInput.val("");
+      }
+      $("#node-input-name").val(this.name || "");
+    },
+    oneditsave: function() {
+      var token = $("#node-config-input-token").val();
+      this.credentials.token = token;
+    }
+  });
+</script>
+
+<script type="text/html" data-template-name="maxbot-config">
+  <div class="form-row">
+    <label for="node-config-input-token"><i class="fa fa-key"></i> Token</label>
+    <input type="text" id="node-config-input-token" data-credential="token" placeholder="Enter MAX token">
+  </div>
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Bot name (optional)">
+  </div>
+</script>

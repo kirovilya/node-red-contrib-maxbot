@@ -1,0 +1,33 @@
+<script type="text/javascript">
+  RED.nodes.registerType("maxbot-send", {
+    category: "MAX Messenger",
+    defaults: {
+      name: { value: "" },
+      bot: { type: "maxbot-config", required: true },
+      defaultChatId: { value: "" }
+    },
+    inputs: 1,
+    outputs: 2,
+    icon: "font-awesome/fa-send",
+    label: function() {
+      return this.name || "MAX Send";
+    },
+    oneditprepare: function() {
+    }
+  });
+</script>
+
+<script type="text/html" data-template-name="maxbot-send">
+  <div class="form-row">
+    <label for="node-input-bot"><i class="fa fa-user"></i> Bot configuration</label>
+    <input type="text" id="node-input-bot" data-type="maxbot-config">
+  </div>
+  <div class="form-row">
+    <label for="node-input-defaultChatId"><i class="fa fa-comment"></i> Default Chat ID</label>
+    <input type="text" id="node-input-defaultChatId" placeholder="e.g. 123456789">
+  </div>
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name (optional)">
+  </div>
+</script>

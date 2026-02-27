@@ -1,0 +1,15 @@
+.vscode/
+.env
+node_modules
+_scratchpad
+.vscode/settings.js
+_scratchpad_flows
+.DS_Store
+./package-lock.json
+*.log
+coverage
+.nyc_output
+dist/
+docs/.vuepress/.cache
+docs/.vuepress/.temp
+.node-red
