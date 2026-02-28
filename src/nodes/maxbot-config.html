@@ -17,7 +17,6 @@
       } else {
         tokenInput.val("");
       }
-      $("#node-input-name").val(this.name || "");
     },
     oneditsave: function() {
       var token = $("#node-config-input-token").val();
@@ -32,7 +31,7 @@
     <input type="text" id="node-config-input-token" data-credential="token" placeholder="Enter MAX token">
   </div>
   <div class="form-row">
-    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
-    <input type="text" id="node-input-name" placeholder="Bot name (optional)">
+    <label for="node-config-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-config-input-name" placeholder="Bot name (optional)">
   </div>
 </script>

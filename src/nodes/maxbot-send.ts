@@ -27,29 +27,37 @@ export default function (RED: NodeAPI) {
 
     this.on("input", async (msg: any, send: any, done: any) => {
       try {
-        const chatId = msg.chatId || config.defaultChatId || msg.topic;
+        const commands = msg.commands;
+        const deleteId = msg.deleteId || msg.payload?.deleteId;
+        const chatId = msg.chatId || config.defaultChatId;
         const userId = msg.userId;
-        if (!chatId && !userId) {
-          throw new Error("chatId and userId is not provided (set in msg.chatId/msg.userId, node config, or msg.topic)");
+        if (!chatId && !userId && !deleteId && !commands) {
+          throw new Error("chatId/userId/deleteId is not provided (set in msg.chatId/msg.userId/msg.deleteId, node config)");
         }
 
         let text = '';
         if (typeof msg.payload === 'object') {
-          text = msg.payload.text || msg.payload.message;
+          text = msg.payload.text;
         } else {
           text =  msg.payload?.toString() || '';
         }
-        if (!text) {
+        if (!text && !deleteId && !commands) {
           throw new Error("message text is empty (msg.payload)");
         }
 
         this.status({ fill: "blue", shape: "ring", text: "sending..." });
 
-        let extra = (typeof msg.payload === 'object') ? msg.payload : undefined;
-        
-        const result = (!chatId && userId) ? 
-          await bot.api.sendMessageToUser(userId, text, extra) :
-          await bot.api.sendMessageToChat(chatId, text, extra);
+        let result;
+        if (deleteId) {
+          result = await bot.api.deleteMessage(deleteId);
+        } else if (commands) {
+          result = await bot.api.setMyCommands(commands);
+        } else {
+          const extra = (typeof msg.payload === 'object') ? msg.payload : undefined;
+          result = (!chatId && userId) ? 
+            await bot.api.sendMessageToUser(userId, text, extra) :
+            await bot.api.sendMessageToChat(chatId, text, extra);
+        }
 
         this.status({ fill: "green", shape: "dot", text: "sent" });
         msg.payload = result;
