@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc -p . && cp -r src/nodes/*.html dist/nodes/",
+    "build": "tsc -p . && shx mkdir -p dist/nodes && shx cp -r src/nodes/*.html dist/nodes/",
     "watch": "tsc -w",
     "lint": "eslint . --ext .ts",
     "prepublishOnly": "npm run build"
@@ -28,7 +28,8 @@
     "typescript": "^5.0.0",
     "eslint": "^8.0.0",
     "eslint-config-airbnb-base": "^15.0.0",
-    "eslint-plugin-import": "^2.0.0"
+    "eslint-plugin-import": "^2.0.0",
+    "shx": "^0.3.4"
   },
   "node-red": {
     "nodes": {
