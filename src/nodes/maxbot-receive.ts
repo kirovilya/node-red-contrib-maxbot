@@ -69,6 +69,7 @@ export default function (RED: NodeAPI) {
             chatId: ctx.message?.recipient.chat_id,
             userId: ctx.message?.recipient.user_id,
             action: ctx.match[0],
+            callback: ctx.callback,
             data: ctx.message,
             reply: (text: string) => ctx.reply(text)
           },
