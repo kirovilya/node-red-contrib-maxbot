@@ -76,7 +76,20 @@ export default function (RED: NodeAPI) {
           topic: "max/action",
         });
       };
+      const botStartedHandler = (ctx: any) => {
+        if (!isActive) return;
+        this.send({
+          payload: {
+            chatId: ctx.update.chat_id,
+            userId: ctx.update.user.user_id,
+            data: ctx.update.payload,
+            reply: (text: string) => ctx.reply(text)
+          },
+          topic: "max/bot_started",
+        });
+      };
 
+      bot.on('bot_started', botStartedHandler);
       bot.on('message_created', messageHandler);
       bot.command(/.*/, commandHandler);
       bot.action(/.*/, actionHandler);
