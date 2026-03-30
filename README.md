@@ -87,3 +87,60 @@ return {
     deleteId: msg.payload.data.body.mid,
 };
 ```
+
+Отправить фото по URL:
+```
+return {
+    payload: {
+        type: 'image',
+        source: 'https://example.com/photo.jpg',
+        text: 'Красивое фото'
+    },
+    chatId: msg.payload.chatId,
+};
+```
+
+Отправить видео по URL:
+```
+return {
+    payload: {
+        type: 'video',
+        source: 'https://example.com/video.mp4',
+        text: 'Посмотри это видео!'
+    },
+    chatId: msg.payload.chatId,
+};
+```
+
+Отправить файл по URL:
+```
+return {
+    payload: {
+        type: 'file',
+        source: 'https://example.com/document.pdf'
+    },
+    chatId: msg.payload.chatId,
+};
+```
+
+Отправить аудио по URL:
+```
+return {
+    payload: {
+        type: 'audio',
+        source: 'https://example.com/audio.mp3'
+    },
+    chatId: msg.payload.chatId,
+};
+```
+
+Отправить файл с локального пути:
+```
+return {
+    payload: {
+        type: 'file',
+        source: '/path/to/document.pdf'
+    },
+    chatId: msg.payload.chatId,
+};
+```

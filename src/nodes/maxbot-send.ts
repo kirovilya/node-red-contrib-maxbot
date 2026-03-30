@@ -1,5 +1,5 @@
 import { NodeAPI, Node } from "node-red";
-import { Bot, Keyboard } from "@maxhub/max-bot-api";
+import { Bot, Keyboard, ImageAttachment, VideoAttachment, FileAttachment, AudioAttachment } from "@maxhub/max-bot-api";
 
 interface MaxBotConfigNode extends Node {
   token: string;
@@ -36,12 +36,89 @@ export default function (RED: NodeAPI) {
         }
 
         let text = '';
+        let attachments = undefined;
         if (typeof msg.payload === 'object') {
-          text = msg.payload.text;
+          text = msg.payload.text || '';
+          const mediaType = msg.payload.type;
+          const source = msg.payload.source;
+          if (mediaType && source) {
+            const isUrl = typeof source === 'string' && (source.startsWith('http://') || source.startsWith('https://'));
+            let attachment;
+            if (mediaType === 'image') {
+              if (isUrl) {
+                attachment = new ImageAttachment({ url: source });
+              } else {
+                const result = await bot.api.upload.image({ source });
+                if ('url' in result) {
+                  attachment = new ImageAttachment({ url: result.url });
+                } else if ('photos' in result) {
+                  attachment = new ImageAttachment({ photos: result.photos });
+                } else {
+                  attachment = new ImageAttachment({ token: (result as any).token });
+                }
+              }
+            } else if (mediaType === 'video') {
+              if (isUrl) {
+                const response = await fetch(source);
+                if (!response.ok) {
+                  throw new Error(`Failed to download video from URL: ${response.status} ${response.statusText}`);
+                }
+                const buffer = Buffer.from(await response.arrayBuffer());
+                const uploadRes = await bot.api.raw.uploads.getUploadUrl({ type: 'video' });
+                const { url: uploadUrl, token: videoToken } = uploadRes;
+                const formData = new FormData();
+                formData.append('data', new Blob([buffer]), 'video.mp4');
+                await fetch(uploadUrl, {
+                  method: 'POST',
+                  body: formData,
+                });
+                attachment = new VideoAttachment({ token: videoToken });
+              } else {
+                const result = await bot.api.upload.video({ source });
+                attachment = new VideoAttachment({ token: result.token });
+              }
+            } else if (mediaType === 'file') {
+              if (isUrl) {
+                const response = await fetch(source);
+                if (!response.ok) {
+                  throw new Error(`Failed to download file from URL: ${response.status} ${response.statusText}`);
+                }
+                const buffer = await response.arrayBuffer();
+                const result = await bot.api.upload.file({ source: Buffer.from(buffer) });
+                attachment = new FileAttachment({ token: result.token });
+              } else {
+                const result = await bot.api.upload.file({ source });
+                attachment = new FileAttachment({ token: result.token });
+              }
+            } else if (mediaType === 'audio') {
+              if (isUrl) {
+                const response = await fetch(source);
+                if (!response.ok) {
+                  throw new Error(`Failed to download audio from URL: ${response.status} ${response.statusText}`);
+                }
+                const buffer = Buffer.from(await response.arrayBuffer());
+                const uploadRes = await bot.api.raw.uploads.getUploadUrl({ type: 'audio' });
+                const { url: uploadUrl, token: audioToken } = uploadRes;
+                const formData = new FormData();
+                formData.append('data', new Blob([buffer]), 'audio.mp3');
+                await fetch(uploadUrl, {
+                  method: 'POST',
+                  body: formData,
+                });
+                attachment = new AudioAttachment({ token: audioToken });
+              } else {
+                const result = await bot.api.upload.audio({ source });
+                attachment = new AudioAttachment({ token: result.token });
+              }
+            }
+            if (attachment) {
+              attachments = [attachment.toJson()];
+            }
+          }
         } else {
           text =  msg.payload?.toString() || '';
         }
-        if (!text && !deleteId && !commands) {
+        if (!text && !deleteId && !commands && !attachments) {
           throw new Error("message text is empty (msg.payload)");
         }
 
@@ -53,7 +130,13 @@ export default function (RED: NodeAPI) {
         } else if (commands) {
           result = await bot.api.setMyCommands(commands);
         } else {
-          const extra = (typeof msg.payload === 'object') ? msg.payload : undefined;
+          let extra = undefined;
+          if (typeof msg.payload === 'object') {
+            extra = { ...msg.payload };
+            if (attachments) {
+              extra.attachments = attachments;
+            }
+          }
           result = (!chatId && userId) ? 
             await bot.api.sendMessageToUser(userId, text, extra) :
             await bot.api.sendMessageToChat(chatId, text, extra);
