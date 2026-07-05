@@ -1,5 +1,8 @@
 import { NodeAPI, Node } from "node-red";
-import { Bot, Keyboard, ImageAttachment, VideoAttachment, FileAttachment, AudioAttachment } from "@maxhub/max-bot-api";
+import { Bot, ImageAttachment, VideoAttachment, FileAttachment, AudioAttachment } from "@maxhub/max-bot-api";
+import { setupMincaCertificate, httpsFetch, createMultipartBody } from "../certs";
+
+setupMincaCertificate();
 
 interface MaxBotConfigNode extends Node {
   token: string;
@@ -36,7 +39,7 @@ export default function (RED: NodeAPI) {
         }
 
         let text = '';
-        let attachments = undefined;
+        let attachments;
         if (typeof msg.payload === 'object') {
           text = msg.payload.text || '';
           const mediaType = msg.payload.type;
@@ -59,18 +62,16 @@ export default function (RED: NodeAPI) {
               }
             } else if (mediaType === 'video') {
               if (isUrl) {
-                const response = await fetch(source);
+                const response = await httpsFetch(source);
                 if (!response.ok) {
                   throw new Error(`Failed to download video from URL: ${response.status} ${response.statusText}`);
                 }
                 const buffer = Buffer.from(await response.arrayBuffer());
                 const uploadRes = await bot.api.raw.uploads.getUploadUrl({ type: 'video' });
                 const { url: uploadUrl, token: videoToken } = uploadRes;
-                const formData = new FormData();
-                formData.append('data', new Blob([buffer]), 'video.mp4');
-                await fetch(uploadUrl, {
+                await httpsFetch(uploadUrl, {
                   method: 'POST',
-                  body: formData,
+                  multipartBody: createMultipartBody('data', buffer, 'video.mp4'),
                 });
                 attachment = new VideoAttachment({ token: videoToken });
               } else {
@@ -79,7 +80,7 @@ export default function (RED: NodeAPI) {
               }
             } else if (mediaType === 'file') {
               if (isUrl) {
-                const response = await fetch(source);
+                const response = await httpsFetch(source);
                 if (!response.ok) {
                   throw new Error(`Failed to download file from URL: ${response.status} ${response.statusText}`);
                 }
@@ -92,18 +93,16 @@ export default function (RED: NodeAPI) {
               }
             } else if (mediaType === 'audio') {
               if (isUrl) {
-                const response = await fetch(source);
+                const response = await httpsFetch(source);
                 if (!response.ok) {
                   throw new Error(`Failed to download audio from URL: ${response.status} ${response.statusText}`);
                 }
                 const buffer = Buffer.from(await response.arrayBuffer());
                 const uploadRes = await bot.api.raw.uploads.getUploadUrl({ type: 'audio' });
                 const { url: uploadUrl, token: audioToken } = uploadRes;
-                const formData = new FormData();
-                formData.append('data', new Blob([buffer]), 'audio.mp3');
-                await fetch(uploadUrl, {
+                await httpsFetch(uploadUrl, {
                   method: 'POST',
-                  body: formData,
+                  multipartBody: createMultipartBody('data', buffer, 'audio.mp3'),
                 });
                 attachment = new AudioAttachment({ token: audioToken });
               } else {
@@ -116,7 +115,7 @@ export default function (RED: NodeAPI) {
             }
           }
         } else {
-          text =  msg.payload?.toString() || '';
+          text = msg.payload?.toString() || '';
         }
         if (!text && !deleteId && !commands && !attachments) {
           throw new Error("message text is empty (msg.payload)");
@@ -130,16 +129,16 @@ export default function (RED: NodeAPI) {
         } else if (commands) {
           result = await bot.api.setMyCommands(commands);
         } else {
-          let extra = undefined;
+          let extra;
           if (typeof msg.payload === 'object') {
             extra = { ...msg.payload };
             if (attachments) {
               extra.attachments = attachments;
             }
           }
-          result = (!chatId && userId) ? 
-            await bot.api.sendMessageToUser(userId, text, extra) :
-            await bot.api.sendMessageToChat(chatId, text, extra);
+          result = (!chatId && userId)
+            ? await bot.api.sendMessageToUser(userId, text, extra)
+            : await bot.api.sendMessageToChat(chatId, text, extra);
         }
 
         this.status({ fill: "green", shape: "dot", text: "sent" });

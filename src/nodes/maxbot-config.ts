@@ -1,5 +1,8 @@
 import { NodeAPI } from "node-red";
 import { Bot } from "@maxhub/max-bot-api";
+import { setupMincaCertificate } from "../certs";
+
+setupMincaCertificate();
 
 export default function (RED: NodeAPI) {
   function MaxBotConfig(this: any, config: any) {

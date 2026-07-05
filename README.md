@@ -1,6 +1,15 @@
 # node-red-contrib-maxbot
 Node-RED nodes for MAX messenger
 
+### Changelog
+
+#### 0.7.0
+- Обновлена библиотека @maxhub/max-bot-api до версии 0.2.4 (сменился адрес API сервисов на platform-api2.max.ru)
+- Добавлена поддержка сертификатов Минцифры для HTTPS-запросов
+
+#### 0.6.1
+- Исправления ошибок
+
 
 ### Примеры узлов function и данных отправляемых в узел maxbot-send
 

@@ -1,4 +1,7 @@
 import { NodeAPI } from "node-red";
+import { setupMincaCertificate } from "./certs";
+
+setupMincaCertificate();
 
 import maxbotConfig from "./nodes/maxbot-config";
 import maxbotSend from "./nodes/maxbot-send";

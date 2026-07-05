@@ -1,5 +1,8 @@
 import { NodeAPI, Node } from "node-red";
 import { Bot } from "@maxhub/max-bot-api";
+import { setupMincaCertificate } from "../certs";
+
+setupMincaCertificate();
 
 interface MaxBotConfigNode extends Node {
   token: string;
@@ -105,7 +108,8 @@ export default function (RED: NodeAPI) {
           // Ошибка во время работы или запуска
           if (!isActive) return;
 
-          this.error(`MAX Bot error: ${err.message}`);
+          const detail = err.cause ? ` [cause: ${err.cause.message || err.cause.code || JSON.stringify(err.cause)}]` : '';
+          this.error(`MAX Bot error: ${err.message}${detail}`);
           this.status({ fill: "red", shape: "ring", text: "disconnected" });
 
           // Если это текущий бот, сбрасываем ссылку
